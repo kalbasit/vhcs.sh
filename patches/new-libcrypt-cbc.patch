@@ -1,0 +1,30 @@
+diff -Naur a/engine/messager/vhcs2-arpl-msgr b/engine/messager/vhcs2-arpl-msgr
+--- a/engine/messager/vhcs2-arpl-msgr	2005-12-31 12:11:42.000000000 +0100
++++ b/engine/messager/vhcs2-arpl-msgr	2006-06-11 01:44:44.000000000 +0200
+@@ -1375,6 +1375,7 @@
+     my $cipher = Crypt::CBC -> new( 
+                                     {
+                                         'key'             => $main::db_pass_key,
++                                        'keysize'         => 32,
+                                         'cipher'          => 'Blowfish',
+                                         'iv'              => $main::db_pass_iv,
+                                         'regenerate_key'  => 0,
+diff -Naur a/engine/vhcs2_common_code.pl b/engine/vhcs2_common_code.pl
+--- a/engine/vhcs2_common_code.pl	2005-12-31 12:11:48.000000000 +0100
++++ b/engine/vhcs2_common_code.pl	2006-06-11 01:44:35.000000000 +0200
+@@ -1408,6 +1408,7 @@
+     my $cipher = Crypt::CBC -> new( 
+                                     {
+                                         'key'             => $main::db_pass_key,
++                                        'keysize'         => 32,
+                                         'cipher'          => 'Blowfish',
+                                         'iv'              => $main::db_pass_iv,
+                                         'regenerate_key'  => 0,
+@@ -1443,6 +1444,7 @@
+     my $cipher = Crypt::CBC -> new( 
+                                     {
+                                         'key'             => $main::db_pass_key,
++                                        'keysize'         => 32,
+                                         'cipher'          => 'Blowfish',
+                                         'iv'              => $main::db_pass_iv,
+                                         'regenerate_key'  => 0,

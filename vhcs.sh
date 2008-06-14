@@ -1,23 +1,33 @@
-#!/bin/bash
-#                                                
-# +---------------------------------------------------------------------------------------------+
-# | Wael Nasreddine (Gandalf) / gandalf@siemens-mobiles.org                                     |
-# | Purpose of this script is to install VHCS                                                   |
-# |                                                                                             |
-# | This script is distributed without any warrenty use it at your own risk.                    |
-# | If this script blows up your installation it's not my fault :)                              |
-# |                                                                                             |
-# | This script has been tested on ubuntu Breezy Badger, Dapper drake and debian sarge.         |
-# | +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ |
-# | You can modify this script and/or redestribute it as long as this text stay                 |
-# | on the TOP and displayed to the user when he run the script.                                |
-# | Whatever you change, this license must always be displayed to the user...                   |
-# |                                                                                             |
-# | any suggestion are welcomed...                                                              |
-# +---------------------------------------------------------------------------------------------+
+#!/usr/bin/env bash
+#
+#   vim:ft=sh:fenc=UTF-8:ts=4:sts=4:sw=4:expandtab:foldmethod=marker:foldlevel=0:
+#
+#   This script will assist you on installing VHCS on your system
+#
+#   This script has been tested on Ubuntu Breezy Badger (5.10), Dapper Drake (6.06),
+#   Gutsy Gibbon (7.10), Debian Sarge (3.1) and Debian Etch (4.0).
+#
+#   Copyright (c) 2005-2008 Wael Nasreddine <wael.nasreddine@free.fr>
+#   Copyright (c) 2008      Armadillo <armadillo@penguinfriends.org>
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, 
+#   USA.
+#
 
 ### global options ###
-VERSION="1.1.0c"
+VERSION="1.3"
 wget="/usr/bin/wget"
 apt="/usr/bin/apt-get -y --force-yes install"
 update="/usr/bin/apt-get update"
@@ -32,14 +42,17 @@ bind="/etc/init.d/bind9"
 clear="/usr/bin/clear"
 vhcs_daemon="vhcs2_daemon"
 vhcs_network="vhcs2_network"
-url="http://wael.nasreddine.com/files/vhcs/"
+url="http://wael.nasreddine.com/Projects/vhcs/"
 base_dir="/tmp/vhcs_install/"
-#log="/root/vhcs-log-`date +%s`.txt"
+log="/root/vhcs-log-`date +%s`.txt"
 backup_dir="/root/backup/`date +%d-%m-%y-%H-%M`/"
 breezy_sources_list="${url}apt_sources/breezy"
 dapper_sources_list="${url}apt_sources/dapper"
+gutsy_sources_list="${url}apt_sources/gutsy"
 amavisd_conf="${url}amavisd.conf"
 vhcs2_package="vhcs2-2.4.7.1.tar.bz2"
+# Common patches.
+patches=( japenese-lang.patch pma-2.11.2.2.patch various-patches.patch )
 if [ ! -z "${SF_MIRROR}" ]; then
     sf_mirror="${SF_MIRROR}"
 else
@@ -200,7 +213,7 @@ prepare_system()
     if cat /etc/issue | grep "Ubuntu 5.10 \"Breezy Badger\"";
     ### Installing on Breezy Badger
     then
-        echo -e "${YELLOWCOLOR}Installing on ubuntu breezy badger"
+        echo -e "${YELLOWCOLOR}Installing on Ubuntu Breezy Badger (5.10)"
         
         ### checking repository
         echo -e "${CYANCOLOR}Have you enabled universe and multiverse repository in sources.list? [y/n]"
@@ -209,7 +222,7 @@ prepare_system()
         then
             if ! test -e /etc/apt/sources.list_vhcs_backup
               then
-                echo -e "${YELLOWCOLOR}Copying Breezy Sources.list"
+                echo -e "${YELLOWCOLOR}Copying Breezy Badger Sources.list"
                 press_key
                 echo -e "${BLUECOLOR}"
                 if ! test -e ${base_dir}breezy; then ${wget} -P ${base_dir} ${breezy_sources_list}; else echo -e "${YELLOWCOLOR}Sources.list already downloaded, no need to re-download it"; fi
@@ -237,12 +250,13 @@ prepare_system()
                           sasl2-bin apache2 apache2-common apache2-mpm-prefork libapache2-mod-php4 \
                           bzip2 build-essential php4-gd"
         remove_packages="lpr nfs-common portmap pcmcia-cs pppoe pppoeconf ppp pppconfig apache-common apache"
-        patches=()
- 
+        patches=( ${patches[@]} )
+         
+    ### Not on Ubuntu Breezy Badger (5.10)? let's check if its Ubuntu Dapper Drake (6.06)
     elif cat /etc/issue | grep "Ubuntu 6.06";
     ### Installing on Dapper Drake
     then
-        echo -e "${YELLOWCOLOR}Installing on ubuntu dapper drake"
+        echo -e "${YELLOWCOLOR}Installing on Ubuntu Dapper Drake (6.06)"
         
         ### checking repository
         echo -e "${CYANCOLOR}Have you enabled universe and multiverse repository in sources.list? [y/n]"
@@ -251,7 +265,7 @@ prepare_system()
         then
             if ! test -e /etc/apt/sources.list_vhcs_backup
               then
-                echo -e "${YELLOWCOLOR}Copying Breezy Sources.list"
+                echo -e "${YELLOWCOLOR}Copying Dapper Drake Sources.list"
                 press_key
                 echo -e "${BLUECOLOR}"
                 if ! test -e ${base_dir}dapper; then ${wget} -P ${base_dir} ${dapper_sources_list}; else echo -e "${YELLOWCOLOR}Sources.list already downloaded, no need to re-download it"; fi
@@ -265,8 +279,8 @@ prepare_system()
         fi
     
         ### defining variables
-        install_packages="ssh postfix proftpd-mysql courier-authdaemon courier-base \
-                          courier-imap courier-maildrop courier-pop libberkeleydb-perl \
+        install_packages="ssh postfix proftpd-mysql courier-authdaemon courier-base courier-imap-ssl \
+                          courier-imap courier-maildrop courier-pop libberkeleydb-perl courier-pop-ssl \
                           libcrypt-blowfish-perl libcrypt-cbc-perl libcrypt-passwdmd5-perl \
                           libdate-calc-perl libdate-manip-perl libdbd-mysql-perl libdbi-perl \
                           libio-stringy-perl libmail-sendmail-perl libmailtools-perl libmd5-perl \
@@ -279,14 +293,64 @@ prepare_system()
                           sasl2-bin apache2 apache2-common apache2-mpm-prefork libapache2-mod-php4 \
                           bzip2 build-essential php4-gd"
         remove_packages="lpr nfs-common portmap pcmcia-cs pppoe pppoeconf ppp pppconfig apache-common apache"
-        patches=(new-libcrypt-cbc.patch.1)
+        patches=( ${patches[@]} new-libcrypt-cbc.patch )
+    
+        
+    ### Not on Ubuntu Dapper Drake (6.06)? let's check if its Ubuntu Gutsy Gibbon (7.10)
+    elif cat /etc/issue | grep "Ubuntu 7.10";
+    ### Installing on Dapper Drake
+    then
+        echo -e "${YELLOWCOLOR}Installing on Ubuntu Gutsy Gibbon (7.10)"
+        
+        ### checking repository
+        echo -e "${CYANCOLOR}Have you enabled universe and multiverse repository in sources.list? [y/n]"
+        read accept
+        if [ "${accept}" == "n" ]
+        then
+            if ! test -e /etc/apt/sources.list_vhcs_backup
+              then
+                echo -e "${YELLOWCOLOR}Copying Gutsy Gibbon Sources.list"
+                press_key
+                echo -e "${BLUECOLOR}"
+                if ! test -e ${base_dir}gutsy; then ${wget} -P ${base_dir} ${gutsy_sources_list}; else echo -e "${YELLOWCOLOR}Sources.list already downloaded, no need to re-download it"; fi
+                mv /etc/apt/sources.list /etc/apt/sources.list_vhcs_backup
+                cp ${base_dir}gutsy /etc/apt/sources.list
+            else #the script already been run
+                echo -e ""
+                echo -e "${YELLOWCOLOR}the Sources.list file already been changed (the script has been ran before?)"
+                echo -e "no need to replace the file again"
+            fi
+        fi
+    
+        ### defining variables
+        install_packages="ssh postfix proftpd-mysql courier-authdaemon courier-base courier-imap-ssl \
+                          courier-imap courier-maildrop courier-pop libberkeleydb-perl courier-pop-ssl \
+                          libcrypt-blowfish-perl libcrypt-cbc-perl libcrypt-passwdmd5-perl \
+                          libdate-calc-perl libdate-manip-perl libdbd-mysql-perl libdbi-perl \
+                          libio-stringy-perl libmail-sendmail-perl libmailtools-perl libmd5-perl \
+                          libmime-perl libnet-dns-perl libnet-netmask-perl \
+                          libnet-smtp-server-perl libperl5.8 libsnmp-session-perl \
+                          libterm-readkey-perl libtimedate-perl perl perl-base perl-modules \
+                          bind9 diff gzip iptables libmcrypt4 mysql-client-5.0 mysql-common \
+                          mysql-server-5.0 patch php5 php5-gd php5-mcrypt php5-mysql php-pear procmail \
+                          tar original-awk libterm-readpassword-perl libsasl2-modules libsasl2-2 \
+                          sasl2-bin apache2 apache2.2-common apache2-mpm-prefork libapache2-mod-php5 \
+                          bzip2 build-essential"
+        remove_packages="lpr nfs-common portmap pcmcia-cs pppoe pppoeconf ppp pppconfig apache-common apache"
+        patches=( ${patches[@]} new-libcrypt-cbc.patch )
+        
+        echo -e "${YELLOWCOLOR}CAUTION!!! NOW THE SYMLINK OF SH WE'LL BE DELETED AND SET TO THE BASH. IT WILL BE RESETTED AFTER THE INSTALLATION OF VHCS IS COMPLETE!!!"
+        
+        rm /bin/sh
+        
+        ln -s /bin/bash /bin/sh
     
     
-    ### Not on ubuntu? let's check if its debian sarge
+    ### Not on Ubuntu Gutsy Gibbon (7.10)? let's check if its Debian Sarge (3.1)
     elif cat /etc/issue |grep "Debian GNU/Linux 3.1";
     ### Installing on debian sarge
     then 
-        echo -e "${YELLOWCOLOR}Installing on debian sarge"
+        echo -e "${YELLOWCOLOR}Installing on Debian Sarge (3.1)"
         press_key
         
         #echo -e "Copying Sarge Sources.list"
@@ -296,8 +360,8 @@ prepare_system()
         #cp ${base_dir}sources.list_sarge /etc/apt/sources.list
         
         ### defining variables
-        install_packages="ssh postfix postfix-tls proftpd-mysql courier-authdaemon courier-base \
-                          courier-imap courier-maildrop courier-pop libberkeleydb-perl \
+        install_packages="ssh postfix postfix-tls proftpd-mysql courier-authdaemon courier-base courier-imap-ssl \
+                          courier-imap courier-maildrop courier-pop libberkeleydb-perl courier-pop-ssl \
                           libcrypt-blowfish-perl libcrypt-cbc-perl libcrypt-passwdmd5-perl \
                           libdate-calc-perl libdate-manip-perl libdbd-mysql-perl libdbi-perl \
                           libio-stringy-perl libmail-sendmail-perl libmailtools-perl libmd5-perl \
@@ -310,10 +374,40 @@ prepare_system()
                           sasl2-bin apache2 apache2-common apache2-mpm-prefork libapache2-mod-php4 \
                           bzip2 php4-gd"
         remove_packages="lpr nfs-common portmap pcmcia-cs pppoe pppoeconf ppp pppconfig apache-common apache"
-        patches=()
+        patches=( ${patches[@]} )
 
-    ### Not on Breezy nor on debian sarge :o, aborting then
-    else echo -e "${YELLOWCOLOR}This distro is not supported by this script. This script is designed for, and will only work on, Ubuntu Breezy Badger (5.10), Ubuntu Dapper Drake (6.06) and Debian sarge (3.1)"
+    ### Not on Debian Sarge (3.1)? let's check if its Debian Etch (4.0)
+    elif cat /etc/issue |grep "Debian GNU/Linux 4.0";
+    ### Installing on Debian Etch
+    then 
+        echo -e "${YELLOWCOLOR}Installing on Debian Etch (4.0)"
+        press_key
+        
+        #echo -e "Copying Etch Sources.list"
+        #echo -e "${BLUECOLOR}"
+        #${wget} -P ${base_dir} ${etch_sources_list}
+        #cp /etc/apt/sources.list /etc/apt/sources.list_vhcs_backup
+        #cp ${base_dir}sources.list_etch /etc/apt/sources.list
+        
+        ### defining variables
+        install_packages="ssh postfix proftpd-mysql courier-authdaemon courier-base courier-imap-ssl\
+                          courier-imap courier-maildrop courier-pop courier-pop-ssl libberkeleydb-perl \
+                          libcrypt-blowfish-perl libcrypt-cbc-perl libcrypt-passwdmd5-perl \
+                          libdate-calc-perl libdate-manip-perl libdbd-mysql-perl libdbi-perl \
+                          libio-stringy-perl libmail-sendmail-perl libmailtools-perl libmd5-perl \
+                          libmime-perl libnet-dns-perl libnet-netmask-perl \
+                          libnet-smtp-server-perl libperl5.8 libsnmp-session-perl \
+                          libterm-readkey-perl libtimedate-perl perl perl-base perl-modules \
+                          bind9 diff gzip iptables libmcrypt4 mysql-client-5.0 mysql-common \
+                          mysql-server-5.0 patch php5 php5-mcrypt php5-mysql php-pear procmail \
+                          tar original-awk libterm-readpassword-perl libsasl2-modules libsasl2 \
+                          sasl2-bin apache2 apache2.2-common apache2-mpm-prefork libapache2-mod-php5 \
+                          bzip2 php5-gd g++ make"
+        remove_packages="lpr nfs-common portmap pcmcia-cs pppoe pppoeconf ppp pppconfig apache-common apache"
+        patches=( ${patches[@]} new-libcrypt-cbc.patch )
+
+    ### Not on Breezy nor on Debian Sarge nor Debian Etch :o, aborting then
+    else echo -e "${YELLOWCOLOR}This distro is not supported by this script. This script is designed for, and will only work on, Ubuntu Breezy Badger (5.10), Ubuntu Dapper Drake (6.06), Debian sarge (3.1) and Debian Etch (4.0)"
     exit 1
     fi
     press_key_error
@@ -404,9 +498,9 @@ prepare_system()
     echo -e "${YELLOWCOLOR}"
     echo -e "Read the below text carefully, I advise you to note them down on a piece of paper"
     echo -e "${REDCOLOR}"
-    echo -e "when you get to the courier screen, select no to web directories"
-    echo -e "when you get to the postfix screen, select internet site and then type root for mail if asked. If you setup correctly your distribution on install, your domain should be already on screen. Select no to force sync updates if asked, select standalone."
-    echo -e "When you get to the MySQL screen, Select Standalone."
+    echo -e "When you get to the Courier screen, select no to web directories."
+    echo -e "When you get to the Postfix screen, select internet site and then type root for mail if asked. If you setup correctly your distribution on install, your domain should be already on screen. Select no to force sync updates if asked, select standalone."
+    echo -e "When you get to the ProFTPd screen, Select Standalone."
     echo -e "${COLOROFF}"
     force_press_key
     echo -e "${BLUECOLOR}"
@@ -418,7 +512,7 @@ prepare_system()
 install_vhcs()
 {
     ### Downloading VHCS
-    header_to_print="Downloading VHCS"
+    header_to_print="Downloading VHCS2 Archive"
     print_header
     press_key
     echo -e "${BLUECOLOR}"
@@ -427,7 +521,7 @@ install_vhcs()
     
 
     ### Untaring VHCS
-    header_to_print="Untaring VHCS archive"
+    header_to_print="Untaring VHCS Archive"
     print_header
     press_key
     echo -e "${BLUECOLOR}"
@@ -440,7 +534,7 @@ install_vhcs()
     press_key_error
 
     ### let's install VHCS and put it in place
-    header_to_print="Compiling/Installing VHCS"
+    header_to_print="Compiling/Installing VHCS2"
     print_header
     press_key
     echo -e "${BLUECOLOR}"
@@ -495,9 +589,19 @@ install_vhcs()
     print_header
     press_key
     echo -e "${BLUECOLOR}"
-    if ! cat /etc/php4/apache2/php.ini | grep "extension=mcrypt.so"; then echo -e "extension=mcrypt.so" >> /etc/php4/apache2/php.ini; fi
-    if ! cat /etc/php4/apache2/php.ini | grep "extension=mysql.so"; then echo -e "extension=mysql.so" >> /etc/php4/apache2/php.ini; fi
-
+    
+    if [ -f "/etc/php4/apache2/php.ini" ]
+        then
+        echo -e "Detected PHP4... patching php.ini"
+        if ! cat /etc/php4/apache2/php.ini | grep "extension=mcrypt.so"; then echo -e "extension=mcrypt.so" >> /etc/php4/apache2/php.ini; fi
+        if ! cat /etc/php4/apache2/php.ini | grep "extension=mysql.so"; then echo -e "extension=mysql.so" >> /etc/php4/apache2/php.ini; fi
+    elif [ -f "/etc/php5/apache2/php.ini" ]
+        then
+        echo -e "Detected PHP5... patching php.ini"
+        if ! cat /etc/php5/apache2/php.ini | grep "extension=mcrypt.so"; then echo -e "extension=mcrypt.so" >> /etc/php5/apache2/php.ini; fi
+        if ! cat /etc/php5/apache2/php.ini | grep "extension=mysql.so"; then echo -e "extension=mysql.so" >> /etc/php5/apache2/php.ini; fi
+    fi
+    
     # Not needed with VHCS >= 2.6.4.2
     #if ! cat /etc/apache2/httpd.conf | grep "Include /etc/apache2/sites-available/vhcs2.conf"; then echo -e "Include /etc/apache2/sites-available/vhcs2.conf" >> /etc/apache2/httpd.conf; fi
     check_errs $? "There was an error writing some configuration entries.${COLOROFF}"
@@ -509,6 +613,26 @@ install_vhcs()
     press_key
     echo -e "${BLUECOLOR}"
     restart_apache
+    
+    if grep "Debian GNU/Linux 4.0" /etc/issue || grep "Debian GNU/Linux 3.1" /etc/issue || grep "Ubuntu 6.06" /etc/issue || grep "Ubuntu 7.10" /etc/issue;
+        then
+        ### copying proftpd.conf to /etc/proftpd/
+        echo -e "${BLUECOLOR}"
+        echo -e "Copying proftpd.conf to \"/etc/proftpd/\""
+        cp /etc/proftpd.conf /etc/proftpd/proftpd.conf
+        echo -e "Restarting ProFTPd..."
+        /etc/init.d/proftpd restart
+        echo -e "${REDCOLOR}CAUTION!!! Please check MANUALLY AFTER THE INSTALLATION if the {HOST_NAME} on line 6 and {DATABASE_NAME}, {DATABASE_HOST}, {DATABASE_USER}, {DATABASE_PASS} on line 117 in /etc/proftpd/proftpd.conf have successfully been replaced by the VHCS-Setup. If not, replace them with the correct entries you entered at the beginning auf the VHCS-Setup and restart Proftpd!"
+    fi
+    
+    if grep "Ubuntu 7.10" /etc/issue;
+        then
+        echo -e "${YELLOWCOLOR}THE SYMLINK OF SH WILL NOW BE SET BACK TO THE _DASH_!!!"
+        mv /bin/sh /bin/sh.old
+        
+        ln -s /bin/dash /bin/sh
+    fi
+    
     check_errs $? "There was an error restarting apache.${COLOROFF}"
     press_key_error
 
@@ -541,9 +665,9 @@ install_vhcs()
     echo -e "${YELLOWCOLOR}"
     echo -e "Congratulations, VHCS installation is done."
     echo -e "Visit http://127.0.0.1/vhcs2/ if you got vhcs page then everything was correct."
-    echo -e "if not, please email me with the details to gandalf@siemens-mobiles.org"
+    echo -e "if not, please email us with the details at wael.nasreddine@free.fr or armadillo@penguinfriends.org"
     echo -e ""
-    echo -e "Visit http://wael.nasreddine.com/vhcs/ for more information and for Tips & Tricks"
+    echo -e "Visit ${url} for more information and for Tips & Tricks"
   press_key
     
     ### Let's go back to the Main Menu
@@ -616,9 +740,14 @@ install_clamav_spamassassin()
         /etc/init.d/postfix restart
     
         ### Checking sources.list entry
-        if ! cat /etc/apt/sources.list | grep "deb http://ftp2.de.debian.org/debian-volatile sarge/volatile main"
+        if ! cat /etc/apt/sources.list | grep "deb http://ftp2.de.debian.org/debian-volatile sarge/volatile main" && cat /etc/issue |grep "Debian GNU/Linux 3.1"
         then
-            echo "#added for clamav and spamassassin by vhcs installation script made by Wael Nasreddine" >> /etc/apt/sources.list
+            echo "#added for ClamAV and Spamassassin by vhcs installation script made by Armadillo" >> /etc/apt/sources.list
+            echo "deb http://ftp2.de.debian.org/debian-volatile sarge/volatile main" >> /etc/apt/sources.list
+            ${update}
+        elif ! cat /etc/apt/sources.list | grep "deb http://ftp2.de.debian.org/debian-volatile etch/volatile main" && cat /etc/issue |grep "Debian GNU/Linux 4.0"
+        then
+            echo "#added for ClamAV and Spamassassin by vhcs installation script made by Armadillo" >> /etc/apt/sources.list
             echo "deb http://ftp2.de.debian.org/debian-volatile sarge/volatile main" >> /etc/apt/sources.list
             ${update}
         fi
@@ -631,8 +760,8 @@ install_clamav_spamassassin()
         echo -e "${YELLOWCOLOR}"
         echo -e "Congratulations, Clamav and Spam Assassin Successfully Installed."
         echo -e ""
-        echo -e "Visit http://wael.nasreddine.com/vhcs/ for more information and for Tips & Tricks"
-      press_key
+        echo -e "Visit ${url} for more information and for Tips & Tricks"
+        press_key
     
         ### Let's go back to the Hacks Menu
         hacks_menu
@@ -741,9 +870,9 @@ vhcs_2_4_7__2_4_7_1()
         echo -e "Congratulations, VHCS has been succesfully updated to 2.4.7.1 from 2.4.7."
         echo -e "a Backup of all replaced/Changed files can be found at ${temp_dir}"
         echo -e "Visit http://127.0.0.1/vhcs2/ if you got vhcs page then everything was correct."
-        echo -e "if not, please email me with the details to gandalf@siemens-mobiles.org"
+        echo -e "if not, please email us with the details at wael.nasreddine@free.fr or armadillo@penguinfriends.org"
         echo -e ""
-        echo -e "Visit http://wael.nasreddine.com/vhcs/ for more information and for Tips & Tricks"
+        echo -e "Visit ${url} for more information and for Tips & Tricks"
       press_key
     
         ### Let's go back to the Main Menu
@@ -1239,15 +1368,18 @@ print_license()
     header_to_print="VHCS Automatic Installer V.${VERSION} By Wael Nasreddine"
     print_header
     echo -e " ${LILACCOLOR}+---------------------------------------------------------------------------------------------------+${COLOROFF}"
-    echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} Wael Nasreddine (Gandalf) / gandalf@siemens-mobiles.org                                           ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
+    echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} Wael Nasreddine / wael.nasreddine@free.fr                                                         ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
+    echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} and Armadillo / armadillo@penguinfriends.org                                                      ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
+    echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR}                                                                                                   ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} Purpose of this script is to install VHCS                                                         ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}|${COLOROFF}${GREENCOLOR}                                                                                                   ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}|${COLOROFF}${GREENCOLOR} This script is distributed without any warrenty use it at your own risk.                          ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} If this script blows up your installation it's not my fault :)                                    ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR}                                                                                                   ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
-    echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} This script has been tested on ubuntu Breezy Badger 5.10, Dapper Drake (6.06) and debian sarge.   ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
+    echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} This script has been tested on Ubuntu Breezy Badger 5.10, Dapper Drake (6.06), Gutsy Gibbon(7.10),${COLOROFF}${LILACCOLOR}|${COLOROFF}"
+    echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} Debian Sarge (3.1) and Debian Etch (4.0).                                                         ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
-    echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} You can modify this script and/or redestribute it as long as this text stay                       ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
+    echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} You can modify this script and/or redestribute it (Under GPL V2) but this text stay               ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} on the TOP and displayed to the user when he run the script.                                      ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} Whatever you change, this license must always be displayed to the user...                         ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR}                                                                                                   ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
@@ -1332,6 +1464,32 @@ print_changelog()
     header_to_print="Changelog"
     print_header
     echo -e "${YELLOWCOLOR}"
+    echo -e "V 1.3"
+    echo -e "\t Updated my script to version 1.2.3b Thanks to Armadillo, Release my script under GPL V2 or, at your choice, a later version."
+    echo -e "V 1.2.2e"
+    echo -e "\t Added japanese language pack to VHCS 2.4.7.1 package (thanks to hiroron)"
+    echo -e "V 1.2.2d"
+    echo -e "\t Removed package postfix-tls from Debian Etch (4.0) package list, which is now included in postfix main package"
+    echo -e "V 1.2.2c"
+    echo -e "\t Updated phpMyAdmin to 2.11.2.2"
+    echo -e "V 1.2.2b"
+    echo -e "\t Removed a logical bug from the installscript (Thanks to svschwartz)"
+    echo -e "\t Added some modifications to the proftpd.conf to increase the speed of proftpd. (Thanks to Marcos again)"
+    echo -e "V 1.2.2a"
+    echo -e "\t Removed package libnet-perl from the Debian Etch (4.0) Package List, because it's now included in the package perl-modules. (Thanks to Marcos)"
+    echo -e "V 1.2.2"
+    echo -e "\t Added support for Ubuntu Gutsy Gibbon (7.10), added some cosmetical issues added a line to the Postfix's main.cf."
+    echo -e "V 1.2.1b"
+    echo -e "\t Added Sources to the sources.list for Debian Etch (4.0) to install ClamAV and Spamassassin. (Thanks to Baris)"
+    echo -e "V 1.2.1a"
+    echo -e "\t Added some Options in the proftpd.conf in the VCHS Package to get it working right on all systems and to set the proftpd-user to \"proftpd\"."
+    echo -e "V 1.2.1"
+    echo -e "\t Added automatic copying of the proftpd.conf to /etc/proftpd for Debian Etch (4.0)."
+    echo -e "\t Added after copying of the proftpd.conf restarting of ProFTPd to submit the new config."
+    echo -e "V 1.2.0a"
+    echo -e "\t Some cosmetic changes."
+    echo -e "V 1.2.0"
+    echo -e "\t Added support for Debian Etch (4.0) with PHP5 and MySQL5."
     echo -e "V 1.1.0c"
     echo -e "\t Replace mysql-common-4.1 with mysql-common for Ubuntu."
     echo -e "V 1.1.0b"
@@ -1378,10 +1536,10 @@ quit_script()
 trap handle_interrupt 2 15
 
 ### Checking if it's root user
-check_user
+#check_user
 
 ### Making the backup dir
-mkdir -p ${backup_dir}
+#mkdir -p ${backup_dir}
 
 ### Print the Licence NOTE: You are not authorized to comment the below line
 ### Or Changing any line on the License itself, it's 15 Lines and must stay 15
@@ -1392,16 +1550,16 @@ print_license
 print_script_usage
 
 ### Check for script updates, if there is any download and run it
-check_for_updates
+#check_for_updates
 
 ### Print the Change log
 print_changelog
 
 ### Let's go to the Main Menu now as everything is handled already
-main_menu
+#main_menu
 
 ### Ok just to make sure that the script will quit, it's not possible user will achieve this, but just to make sure
-quit_script
+#quit_script
 
 # End Of File
 # vim: set ft=sh ts=4 sw=4 expandtab:
