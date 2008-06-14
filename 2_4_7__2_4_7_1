@@ -1,0 +1,4 @@
+USE vhcs2
+DELETE FROM `vhcs2`.`mail_users` WHERE `sub_id`='0' AND `mail_type` = 'alias_catchall';
+UPDATE `vhcs2`.`mail_users` SET `status` = 'change' WHERE `status` = 'ok';
+quit

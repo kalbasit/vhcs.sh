@@ -1,0 +1,5 @@
+USE vhcs2
+UPDATE `domain` SET `domain_status` = 'change' WHERE `domain_status` = 'ok';
+UPDATE `domain_aliasses` SET `alias_status` = 'change' WHERE `alias_status` = 'ok';
+UPDATE `subdomain` SET `subdomain_status` = 'change' WHERE `subdomain_status` = 'ok';
+quit

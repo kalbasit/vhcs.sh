@@ -1,0 +1,45 @@
+#!/bin/sh
+
+WWWROOT=/var/www/virtual # Path of the website
+ETCDIR=/etc/awstats # Dir where AWSTATS conf are stored
+AWSTATSPL=/usr/lib/cgi-bin # Path of awstats.pl
+TMPDIR=/tmp # Path where temp file are stored
+LOGPATTERN=MARK # Search Pattern in the LogFile
+LOGHTTPDIR=/var/log/apache2 # Path of LogDir
+CONFTEMPLATE=/etc/awstats/awstats.model.conf # Basic Configuration file
+PID=$$
+
+echo "- Search Logs..."
+LOGS=$(find $LOGHTTPDIR/ -name *-combined.log)
+
+for LOG in $LOGS ; do
+FILENAME=$(basename $LOG)
+NAME=$(echo $FILENAME | sed 's/-combined.log//g')
+LOCATION=$(echo $NAME | perl -pe 's/.*\.(.*\..*)/$1/')
+
+if [ -e $WWWROOT/$LOCATION ] ; then
+if [ ! -e $ETCDIR/awstats.$NAME.conf ] ; then
+echo "- Write conf for $NAME..."
+echo "sed 's/$LOGPATTERN/$NAME/g' $CONFTEMPLATE >> /$TMPDIR/$NAME.$PID" | sh
+cp -f /$TMPDIR/$NAME.$PID $ETCDIR/awstats.$NAME.conf
+rm -f /$TMPDIR/$NAME.$PID
+fi
+else
+if [ ! -e $ETCDIR/awstats.$NAME.conf ] ; then
+echo "- Config $WWWROOT/$LOCATION Doesn't exist, searching data"
+SEARCHLOC=$(echo $LOCATION | sed 's/[.]/_/g')
+FOUND=$(find $WWWROOT/ -name $SEARCHLOC)
+echo "- Data found in $FOUND"
+echo "- Write conf for $NAME..."
+CUT=$(echo $FOUND | awk -F'[/]' '{ print $3 }')
+echo "sed 's/$LOGPATTERN/$NAME/g' $CONFTEMPLATE >> /$TMPDIR/$NAME.$PID" | sh
+cp -f /$TMPDIR/$NAME.$PID $ETCDIR/awstats.$NAME.conf
+rm -f /$TMPDIR/$NAME.$PID
+fi
+fi
+done
+
+/usr/sbin/awstats_updateall.pl now -configdir=/etc/awstats -awstatsprog=/usr/lib/cgi-bin/awstats.pl
+echo "- Update statistics"
+
+

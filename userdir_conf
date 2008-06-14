@@ -1,0 +1,30 @@
+NameVirtualHost IP_ADDRESS
+
+<VirtualHost users.DOMAIN_NAME>
+ServerName users.DOMAIN_NAME
+
+    DocumentRoot /var/www/vhcs2/gui
+    <Directory /var/www/vhcs2/gui>
+
+        Options Indexes Includes FollowSymLinks MultiViews
+        AllowOverride None
+        Order allow,deny
+        Allow from all
+
+    </Directory>
+
+<IfModule mod_userdir.c>
+
+    UserDir /var/www/virtual/*/htdocs
+    UserDir disabled root
+
+
+    <Directory /var/www/virtual/*/htdocs>
+
+        AllowOverride FileInfo AuthConfig Limit
+        Options MultiViews Indexes SymLinksIfOwnerMatch IncludesNoExec
+
+    </Directory>
+
+</IfModule>
+</VirtualHost>

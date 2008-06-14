@@ -1,0 +1,2 @@
+GRANT USAGE ON * . * TO 'vhcs2_awstats'@'localhost' IDENTIFIED BY 'vhcs2' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 ;
+GRANT SELECT ON `vhcs2`.`admin` TO 'vhcs2_awstats'@'localhost';
