@@ -7,7 +7,7 @@
 #   This script has been tested on Ubuntu Breezy Badger (5.10), Dapper Drake (6.06),
 #   Gutsy Gibbon (7.10), Debian Sarge (3.1) and Debian Etch (4.0).
 #
-#   Copyright (c) 2005-2008 Wael Nasreddine <wael.nasreddine@free.fr>
+#   Copyright (c) 2005-2008 Wael Nasreddine <wael.nasreddine@sabayonlinux.org>
 #   Copyright (c) 2008      Armadillo <armadillo@penguinfriends.org>
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -665,7 +665,7 @@ install_vhcs()
     echo -e "${YELLOWCOLOR}"
     echo -e "Congratulations, VHCS installation is done."
     echo -e "Visit http://127.0.0.1/vhcs2/ if you got vhcs page then everything was correct."
-    echo -e "if not, please email us with the details at wael.nasreddine@free.fr or armadillo@penguinfriends.org"
+    echo -e "if not, please email us with the details at wael.nasreddine@sabayonlinux.org or armadillo@penguinfriends.org"
     echo -e ""
     echo -e "Visit ${url} for more information and for Tips & Tricks"
   press_key
@@ -870,7 +870,7 @@ vhcs_2_4_7__2_4_7_1()
         echo -e "Congratulations, VHCS has been succesfully updated to 2.4.7.1 from 2.4.7."
         echo -e "a Backup of all replaced/Changed files can be found at ${temp_dir}"
         echo -e "Visit http://127.0.0.1/vhcs2/ if you got vhcs page then everything was correct."
-        echo -e "if not, please email us with the details at wael.nasreddine@free.fr or armadillo@penguinfriends.org"
+        echo -e "if not, please email us with the details at wael.nasreddine@sabayonlinux.org or armadillo@penguinfriends.org"
         echo -e ""
         echo -e "Visit ${url} for more information and for Tips & Tricks"
       press_key
@@ -1368,7 +1368,7 @@ print_license()
     header_to_print="VHCS Automatic Installer V.${VERSION} By Wael Nasreddine"
     print_header
     echo -e " ${LILACCOLOR}+---------------------------------------------------------------------------------------------------+${COLOROFF}"
-    echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} Wael Nasreddine / wael.nasreddine@free.fr                                                         ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
+    echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} Wael Nasreddine / wael.nasreddine@sabayonlinux.org                                                ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} and Armadillo / armadillo@penguinfriends.org                                                      ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR}                                                                                                   ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
     echo -e " ${LILACCOLOR}${COLOROFF}${LILACCOLOR}|${COLOROFF}${COLOROFF}${GREENCOLOR} Purpose of this script is to install VHCS                                                         ${COLOROFF}${LILACCOLOR}|${COLOROFF}"
