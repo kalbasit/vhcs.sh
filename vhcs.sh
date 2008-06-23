@@ -27,7 +27,7 @@
 #
 
 ### global options ###
-VERSION="1.3"
+VERSION="1.3.1"
 wget="/usr/bin/wget"
 apt="/usr/bin/apt-get -y --force-yes install"
 update="/usr/bin/apt-get update"
@@ -1464,6 +1464,8 @@ print_changelog()
     header_to_print="Changelog"
     print_header
     echo -e "${YELLOWCOLOR}"
+    echo -e "V 1.3.1"
+    echo -e "V It Seems that I forgot to remove my debugging-aid, uncomment main functions."
     echo -e "V 1.3"
     echo -e "\t Updated my script to version 1.2.3b Thanks to Armadillo, Release my script under GPL V2 or, at your choice, a later version."
     echo -e "V 1.2.2e"
@@ -1536,10 +1538,10 @@ quit_script()
 trap handle_interrupt 2 15
 
 ### Checking if it's root user
-#check_user
+check_user
 
 ### Making the backup dir
-#mkdir -p ${backup_dir}
+mkdir -p ${backup_dir}
 
 ### Print the Licence NOTE: You are not authorized to comment the below line
 ### Or Changing any line on the License itself, it's 15 Lines and must stay 15
@@ -1550,16 +1552,16 @@ print_license
 print_script_usage
 
 ### Check for script updates, if there is any download and run it
-#check_for_updates
+check_for_updates
 
 ### Print the Change log
 print_changelog
 
 ### Let's go to the Main Menu now as everything is handled already
-#main_menu
+main_menu
 
 ### Ok just to make sure that the script will quit, it's not possible user will achieve this, but just to make sure
-#quit_script
+quit_script
 
 # End Of File
 # vim: set ft=sh ts=4 sw=4 expandtab:
