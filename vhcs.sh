@@ -27,7 +27,7 @@
 #
 
 ### global options ###
-VERSION="1.3.1"
+VERSION="1.4"
 wget="/usr/bin/wget"
 apt="/usr/bin/apt-get -y --force-yes install"
 update="/usr/bin/apt-get update"
@@ -42,7 +42,7 @@ bind="/etc/init.d/bind9"
 clear="/usr/bin/clear"
 vhcs_daemon="vhcs2_daemon"
 vhcs_network="vhcs2_network"
-url="http://wael.nasreddine.com/Projects/vhcs/"
+url="http://github.com/eMxyzptlk/vhcs.sh/raw/master/"
 base_dir="/tmp/vhcs_install/"
 log="/root/vhcs-log-`date +%s`.txt"
 backup_dir="/root/backup/`date +%d-%m-%y-%H-%M`/"
